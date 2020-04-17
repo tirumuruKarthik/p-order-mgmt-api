@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	 <http:listener-config name="p-order-mgmt-api-httpListenerConfig">
+        <http:listener-connection host="${http.host}" port="${http.port}" />
+    </http:listener-config>
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="50527c01-ddab-40f4-a479-2edd8e07cda1" >
+		<db:my-sql-connection host="${db.audit.config.host}" port="${db.audit.config.port}" user="${secure::db.audit.config.user}" password="${secure::db.audit.config.password}" database="${db.audit.config.database}" />
+	</db:config>
+	<import doc:name="Import" doc:id="4ae79593-4a50-4640-8935-a513ef9aace1" file="common-auditing-framework.xml" />
+	<import doc:name="Import" doc:id="85d6eceb-0648-4985-be5c-81fd90aa8a1e" file="common-logging-framework.xml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="fa345160-7a5c-4238-837a-5f245f8bb3fe" file="properties/common-properties.yaml" />
+	<import doc:name="Import" doc:id="b2bcef39-d751-45cc-87f1-a9afb86a8293" file="common-error-handling.xml" />
+	<configuration doc:name="Configuration" doc:id="9f81c438-98b3-479c-9c86-aa5593204bde" defaultErrorHandler-ref="GlobalExceptionStrategy" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="4a5338d5-939d-494e-a34a-8fab8d4baefe" file="properties/${mule.env}-properties.yaml" key="${encryption.key}" />
+    <http:request-config name="s_calm2_Http_Request_configuration" doc:name="HTTP_S_CALM2_Request_configuration" doc:id="93e2946f-8a89-4bb9-b080-cdd2eef3f102" basePath="${calm2.basePath}">
+		<http:request-connection host="${calm2.host}" port="${calm2.port}" />
+
+	</http:request-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="24fcc40d-acd2-4ef7-ad67-97e3bc4c2182" file="properties/${mule.env}-properties.yaml" />
+	
+	
+</mule>

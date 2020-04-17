@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="orderlines-impl-sub-flow" doc:id="fbc1aa57-374a-4cf1-85de-abaa4ba116a0" >
+		<ee:transform doc:name="Set Flow Name" doc:id="db6bad5e-d25b-4fe5-b4f4-620b5156c7f8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Log Process Entry" doc:id="fd0541d0-0c36-4a9d-a894-22622c3d44a6" name="log-process-entry-sub-flow"/>
+		<flow-ref doc:name="Audit Process Entry" doc:id="a9fc07b1-eb2b-4022-b492-7bdcaabb02c7" name="audit-process-entry-sub-flow"/>
+		<ee:transform doc:name="Request Mapping Payload" doc:id="e3322fe2-adad-4720-80b4-28de204d087b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Update Orderline Impl Flow" doc:id="cf38f7e4-90dd-44ba-a1b6-7c71d1fb1b62" name="update-orderline-impl-sub-flow"/>
+		<ee:transform doc:name="Response Payload" doc:id="5bea0007-0a93-4752-8bd6-0c9e6b749b28">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  responseCode: 0,
+  responseText: "success"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Audit Process Exit" doc:id="f3927290-369c-48dd-b82c-0327a125aac8" name="audit-process-exit-sub-flow"/>
+		<flow-ref doc:name="Log Process Exit" doc:id="2367844f-649c-4a79-a224-4a34385ab4d8" name="log-process-exit-sub-flow"/>
+	</sub-flow>
+	<sub-flow name="update-orderline-impl-sub-flow" doc:id="4a77b0ca-c5c6-45d7-8e4c-a8a06378de37" >
+		<ee:transform doc:name="Set Flow Name" doc:id="17b62027-b444-406d-b4f1-64aa3c4d606e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+vars.apiName ++ ": " ++ 'update-orderline-impl-sub-flow']]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Log Process Entry" doc:id="4d33d051-b27a-4558-9e60-0f40bbf1a6b8" name="log-process-entry-sub-flow"/>
+		<flow-ref doc:name="Audit Process Entry" doc:id="66ab89e7-6438-4fcd-b57d-348ced886e09" name="audit-process-entry-sub-flow"/>
+		<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="8875e2c6-e3c9-437f-8f79-b891d791e160" millisBetweenRetries="${retry.frequency}">
+			<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="495c0028-c1a7-4153-abfe-628fb0daad12" config-ref="s_calm2_Http_Request_configuration" path="${calm2.path}" sendCorrelationId="ALWAYS">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Transaction-Id" : "2ddbd94c-96c0-4aa2-a0fe-bb7603ebca7c",
+	"client_secret" : p('secure:calm2.client_secret'),
+	"vRequestId" : vars.transactionId,
+	"Transaction-Start-Time" : "2018-08-02T16:58:12.121Z",
+	"ERP-Account-Number" : "1234",
+	"client_id" : p('secure:calm2.client_id')
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"erpOrderId" : vars.erpOrderId,
+	"erpOrderLineId" : vars.erpOrderLineId
+}]]]></http:uri-params>
+			</http:request>
+			<logger level="INFO" doc:name="Logger" doc:id="f3820543-dfc0-4bf8-bfb0-2fdbacdb9f46" message="#[payload]" />
+		
+</until-successful>
+		<ee:transform doc:name="Response Payload" doc:id="343c74cc-ff1a-486b-b4a8-e93f9058dd27">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  responseCode: 0,
+  responseText: "success"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		<flow-ref doc:name="Audit Process Exit" doc:id="4c0272fb-84bc-495d-b783-92b56e83ae42" name="audit-process-exit-sub-flow"/>
+		<flow-ref doc:name="Log Process Exit" doc:id="4263bc13-cf9f-446f-b26c-09bdf8f9eae4" name="log-process-exit-sub-flow"/>
+	</sub-flow>
+</mule>
