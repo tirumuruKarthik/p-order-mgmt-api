@@ -40,6 +40,12 @@ output application/json
 	
 }]]></ee:set-payload>
 			</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+206]]></ee:set-variable>
+							</ee:variables>
 		</ee:transform>
 						<error-handler >
 					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="853f1780-a751-48ba-9c46-ff9fcead6f74" type="ANY">

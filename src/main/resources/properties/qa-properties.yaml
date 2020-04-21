@@ -24,9 +24,9 @@ calm2:
   host: "http://mule-worker-internal-qa-s-calm2-api-ir1-cloudhub.io"
   port: "8091"
   basePath: "/api/v1"
-  path: "/erpOrderLines"
+  path: "/erpOrderLines/123/123"
   client_id: "123"
-  client_secret: "123"   
+  client_secret: "123"
   
 #----Common Block---No change Needed----
 
