@@ -9,7 +9,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	</apikit:config>
     <flow name="p-order-mgmt-api-main">
         <http:listener config-ref="p-order-mgmt-api-httpListenerConfig" path="${http.basePath}">
-            <http:response statusCode="#[vars.httpStatus default 200]">
+            <http:response statusCode="#[vars.httpStatus]">
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
