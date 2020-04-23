@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:os="http://www.mulesoft.org/schema/mule/os"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
-http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd">
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<sub-flow name="orderlines-impl-sub-flow" doc:id="fbc1aa57-374a-4cf1-85de-abaa4ba116a0">
 		<ee:transform doc:name="Set Flow Name"
 			doc:id="db6bad5e-d25b-4fe5-b4f4-620b5156c7f8">
@@ -33,10 +34,12 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 						<flow-ref doc:name="Log Process Entry" doc:id="c32781b5-27e3-4e4e-96f4-c1a86aa96084" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Call the Object Store for Key" doc:id="f5241d73-1b79-498e-bbe6-2735e3d3e406" name="update-orderline-impl-sub-flow" />
 		<flow-ref doc:name="Audit Process Entry" doc:id="794d3390-aaf5-4e9e-825a-16de91100327" name="audit-process-entry-sub-flow" />
-				<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="bb8adf53-a3b7-46d2-bd4a-94f9aadf0464" millisBetweenRetries="${retry.frequency}">
+				<choice doc:name="Choice" doc:id="7dbe22c9-9184-406b-86a0-c98506f4b8c9" >
+							<when expression='#[payload == "CALM2"]'>
+								<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="bb8adf53-a3b7-46d2-bd4a-94f9aadf0464" millisBetweenRetries="${retry.frequency}">
 			<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="cbfeec92-c1d7-4dbc-91a6-1eb9777fa22f" config-ref="s_calm2_Http_Request_configuration" path="#[vars.systemPath]" sendCorrelationId="ALWAYS" outputMimeType="application/json">
 						<http:body><![CDATA[#[vars.vOriginalPayload]]]></http:body>
-								<http:headers ><![CDATA[#[output application/java
+								<http:headers><![CDATA[#[output application/java
 ---
 {
 	"Transaction-Id" : vars.transactionId,
@@ -53,8 +56,30 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 					
 
 </until-successful>
+							</when>
+							<otherwise >
+								<ee:transform doc:name="Licene not found" doc:id="c26bc9eb-6cd2-47eb-a967-d145f1aaa5bd" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+"responseCode" : 404,
+"responseText" : "Licene not found"
+}
+]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+							</otherwise>
+						</choice>
 		<flow-ref doc:name="Audit Process Exit" doc:id="45eb1f77-e3a8-4a1a-86d4-ac8f3f881c47" name="audit-process-exit-sub-flow" />
-		<flow-ref doc:name="Log Process Exit" doc:id="5770d84b-15a6-4907-9b21-e1f51e3aa4c9" name="log-process-exit-sub-flow"/>
+						<flow-ref doc:name="Log Process Exit" doc:id="5770d84b-15a6-4907-9b21-e1f51e3aa4c9" name="log-process-exit-sub-flow"/>
 		
 						<error-handler >
 					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="853f1780-a751-48ba-9c46-ff9fcead6f74" type="ANY">
@@ -187,37 +212,46 @@ vars.apiName ++ ": " ++ 'update-orderline-impl-sub-flow']]></ee:set-variable>
 		<set-variable value='#[payload.licenseFactory]' doc:name="Set Key" doc:id="8b34568e-5f59-4b62-a63d-382509784b07" variableName="licenseFactory"/>
 		<os:contains doc:name="Contains" doc:id="11da143e-7d5e-463a-9cd5-b15abf3f56c6" key="#[vars.licenseFactory]"/>
 		<choice doc:name="Choice" doc:id="d63f407b-8da0-4b0b-bacf-80ec610f4d08" >
-			<when expression="#[payload != true]">
+			<when expression="#[payload == true]">
 				<os:retrieve doc:name="Retrieve" doc:id="3c2a221b-1a28-4cb1-b91a-9cd5e388b35a" key="#[vars.licenseFactory]">
-					<os:default-value ><![CDATA[#["CALM2"]]]></os:default-value>
 				</os:retrieve>
 				<flow-ref doc:name="Logging Sub Flow" doc:id="8aff0e01-b918-489a-ab8f-f5918a0b9ffc" name="logging-sub-flow"/>
                 <flow-ref doc:name="Audit Sub Flow" doc:id="3e594d00-048c-4cba-bf0b-00a38ef9649e" name="audit-process-entry-sub-flow"/>
-				<ee:transform doc:name="Transform Message" doc:id="3447e517-9540-4c9a-ae91-f8575aec4524" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
- "lookups": [
-   {
-     "lookup_id": 1,
-     "lookup-key": "GB01CAM01",
-     "lookup-value": "CALM2"
-   }]}]]></ee:set-payload>
-					</ee:message>
-				</ee:transform>
 			
 </when>
 			<otherwise >
-				 <os:store doc:name="Store" doc:id="297cf5e6-cdaa-4e0a-ad33-68fe0d37b7f1" key="#[vars.licenseFactory]">
-					<os:value ><![CDATA[#["CALM2"]]]></os:value>
+				<choice doc:name="Choice" doc:id="bf1223b0-4dd4-44a7-b9e5-6229e6f9d731">
+					<when expression='#[vars.licenseFactory == "GB01CAM01"]'>
+						<os:store doc:name="Store" doc:id="297cf5e6-cdaa-4e0a-ad33-68fe0d37b7f1" key="#[vars.licenseFactory]">
+					<os:value><![CDATA[#["CALM2"]]]></os:value>
+
 				</os:store>
-				<flow-ref doc:name="Logging Sub Flow" doc:id="8c40e497-ccd6-4b47-b991-7f8b8b9771cf" name="logging-sub-flow"/>
-                <flow-ref doc:name="Audit Sub Flow" doc:id="f1f8f44b-0f00-4b72-96bb-3502e21d1e5f" name="audit-process-entry-sub-flow"/>
-			</otherwise>
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Licene not found" doc:id="56fa2ec6-ddd6-45eb-8084-7103c9f3bbd7" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+"responseCode" : 404,
+"responseText" : "Licene not found"
+}
+]]></ee:set-payload>
+							</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+200]]></ee:set-variable>
+							</ee:variables>
+						</ee:transform>
+						<flow-ref doc:name="Log Process Exit" doc:id="b27896d3-3ca2-49da-b718-f9544062ab25" name="log-process-exit-sub-flow" />
+						<flow-ref doc:name="Audit Process Exit" doc:id="05fa4f5b-d24a-411e-b887-5ed46f62f5aa" name="audit-process-exit-sub-flow" />
+					</otherwise>
+				</choice>
+			
+</otherwise>
 		</choice>
-		<flow-ref doc:name="Audit Process Exit" doc:id="05fa4f5b-d24a-411e-b887-5ed46f62f5aa" name="audit-process-exit-sub-flow"/>
-		<flow-ref doc:name="Log Process Exit" doc:id="b27896d3-3ca2-49da-b718-f9544062ab25" name="log-process-exit-sub-flow"/>
 	</sub-flow>
 </mule>
