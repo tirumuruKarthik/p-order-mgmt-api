@@ -25,7 +25,7 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 		<flow-ref doc:name="Log Process Entry" doc:id="8c1b5a3c-d87b-4a22-9b44-d29917fcc320" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Audit Process Entry" doc:id="41b6310a-cdfd-4e0b-96da-099547b65f8e" name="audit-process-entry-sub-flow"/>
 		<choice doc:name="Validation Check" doc:id="4584f4cd-36f5-41c0-ba01-8d014a8e4f7b" >
-			<when expression="#[(payload.orderLine != null and isEmpty(payload.orderLine) == false) and (payload.customer != null and isEmpty(payload.customer) == false)]">
+			<when expression="#[(payload.orderLine != null and isEmpty(payload.orderLine) == false) and (payload.customer != null and isEmpty(payload.customer) == false) and (payload.licenseFactory != null and isEmpty(payload.licenseFactory) == false)]">
 				
 				<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="b2067f13-669a-44ed-a173-e8b51690f60e" millisBetweenRetries="${retry.frequency}">
 			<try doc:name="Try" doc:id="d9c94fca-4f93-481b-81c5-e44f6a712d88" >
@@ -35,9 +35,9 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 		<flow-ref doc:name="Call the Object Store for Key" doc:id="f5241d73-1b79-498e-bbe6-2735e3d3e406" name="update-orderline-impl-sub-flow" />
 		<flow-ref doc:name="Audit Process Entry" doc:id="794d3390-aaf5-4e9e-825a-16de91100327" name="audit-process-entry-sub-flow" />
 				<choice doc:name="Choice" doc:id="7dbe22c9-9184-406b-86a0-c98506f4b8c9" >
-							<when expression='#[payload == "CALM2"]'>
-								<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="bb8adf53-a3b7-46d2-bd4a-94f9aadf0464" millisBetweenRetries="${retry.frequency}">
-			<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="cbfeec92-c1d7-4dbc-91a6-1eb9777fa22f" config-ref="s_calm2_Http_Request_configuration" path="#[vars.systemPath]" sendCorrelationId="ALWAYS" outputMimeType="application/json">
+							<when expression='#[payload != null]'>
+								
+									<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="cbfeec92-c1d7-4dbc-91a6-1eb9777fa22f" config-ref="s_calm2_Http_Request_configuration" path="#[vars.systemPath]" sendCorrelationId="ALWAYS" outputMimeType="application/json">
 						<http:body><![CDATA[#[vars.vOriginalPayload]]]></http:body>
 								<http:headers><![CDATA[#[output application/java
 ---
@@ -48,14 +48,9 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 	"Transaction-Start-Time" : vars.transactionStartTime,
 	"ERP-Account-Number" : attributes.headers.'ERP-Account-Number',
 	"client_id" : p('calm2.client_id')
-}]]]></http:headers>				
-			
-
-
+}]]]></http:headers>
 </http:request>
-					
 
-</until-successful>
 							</when>
 							<otherwise >
 								<ee:transform doc:name="Licene not found" doc:id="c26bc9eb-6cd2-47eb-a967-d145f1aaa5bd" >
@@ -228,24 +223,7 @@ vars.apiName ++ ": " ++ 'update-orderline-impl-sub-flow']]></ee:set-variable>
 				</os:store>
 					</when>
 					<otherwise >
-						<ee:transform doc:name="Licene not found" doc:id="56fa2ec6-ddd6-45eb-8084-7103c9f3bbd7" >
-							<ee:message >
-								<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-"responseCode" : 404,
-"responseText" : "Licene not found"
-}
-]]></ee:set-payload>
-							</ee:message>
-							<ee:variables >
-								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
-output application/java
----
-200]]></ee:set-variable>
-							</ee:variables>
-						</ee:transform>
+						<set-payload value="#[null]" doc:name="Set Payload" doc:id="2114470c-7520-496a-9c6f-64aa2adc8f00" />
 						<flow-ref doc:name="Log Process Exit" doc:id="b27896d3-3ca2-49da-b718-f9544062ab25" name="log-process-exit-sub-flow" />
 						<flow-ref doc:name="Audit Process Exit" doc:id="05fa4f5b-d24a-411e-b887-5ed46f62f5aa" name="audit-process-exit-sub-flow" />
 					</otherwise>
