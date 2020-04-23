@@ -24,7 +24,7 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 		<flow-ref doc:name="Log Process Entry" doc:id="8c1b5a3c-d87b-4a22-9b44-d29917fcc320" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Audit Process Entry" doc:id="41b6310a-cdfd-4e0b-96da-099547b65f8e" name="audit-process-entry-sub-flow"/>
 		<choice doc:name="Validation Check" doc:id="4584f4cd-36f5-41c0-ba01-8d014a8e4f7b" >
-			<when expression="#[(payload.orderline != null and isEmpty(payload.orderline) == false) and (payload.customer != null and isEmpty(payload.customer) == false)]">
+			<when expression="#[(payload.orderLine != null and isEmpty(payload.orderLine) == false) and (payload.customer != null and isEmpty(payload.customer) == false)]">
 				
 				<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="b2067f13-669a-44ed-a173-e8b51690f60e" millisBetweenRetries="${retry.frequency}">
 			<try doc:name="Try" doc:id="d9c94fca-4f93-481b-81c5-e44f6a712d88" >
@@ -67,7 +67,7 @@ output application/json
 ---
 {
 	responseCode: 404,
-	responseMessage: "Customer or order line not found",
+	responseMessage: "Customer or orderline not found",
 }]]></ee:set-payload>
 					</ee:message>
 					<ee:variables >
@@ -93,7 +93,61 @@ output application/java
 				<ee:set-variable variableName="vOriginalPayload"><![CDATA[%dw 2.0
 output application/json
 ---
-payload]]></ee:set-variable>
+{
+	orderLine: payload.orderLine map (item , index) -> {
+		orderLineId : item.orderLineId,
+		order: {
+			orderId: item.order.orderId,
+			orderDate: item.order.orderedDate,
+            orderStatus: item.order.orderStatus,
+            salesContact: item.order.salesContact
+
+		},
+		product: {
+			productCode: item.product.itemName,
+            versioning: item.product.versioning,
+            productClass: item.product.itemClass,
+            commercialName: ""
+		},
+		chargingPlan: {
+			startDate: item.chargingPlan.contractStartDate,
+			endDate: item.chargingPlan.contractEndDate,
+			unitType: item.chargingPlan.unitOfSale,
+			unitsBought: item.chargingPlan.unitsBought,
+			feeType: item.chargingPlan.feeType,
+			productVersionList: item.chargingPlan.productVersionList,
+			usageReportingSystem
+: item.chargingPlan.usageReportingSystem
+		}
+	},
+	customer: payload.customer map (cust, custIndex) ->{
+        legacyCustomerCode: cust.legacyCustomerCode,
+		companyName: cust.organisationName,
+        customerCode: cust.accountNumber,
+        contact:{
+         name: cust.customerContact.name,
+        email: cust.customerContact.email,
+        role: cust.customerContact.role
+
+        },
+ 
+        address:{
+
+            id: cust.customerAddress.id,
+            address: cust.customerAddress.address,
+            addressLine2: cust.customerAddress.addressLine2,
+            addressLine3: cust.customerAddress.addressLine3,
+            addressLine4: cust.customerAddress.addressLine4,
+            city: cust.customerAddress.city,
+            state: cust.customerAddress.state,
+            postalCode: cust.customerAddress.postalCode,
+            country: cust.customerAddress.country
+
+        }
+
+	},
+    licenseFactory: payload.licenseFactory
+}]]></ee:set-variable>
 				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
 output application/java
 ---
@@ -117,9 +171,15 @@ now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"}]]></ee:set-variable>
 	"Transaction-Id" : vars.transactionId,
 	"client_secret" : p('calm2.client_secret'),
 	"Transaction-Start-Time" : vars.transactionStartTime,
-	"ERP-Account-Number" : "1234",
+	"ERP-Account-Number" : attributes.headers.'ERP-Account-Number',
 	"client_id" : p('calm2.client_id')
-}]]]></http:headers>				
+}]]]></http:headers>
+				<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"erpOrderId" : attributes.headers.erpOrderId,
+	"erpOrderLineId" : attributes.headers.erpOrderLineId
+}]]]></http:uri-params>				
 			
 
 </http:request>
@@ -144,7 +204,7 @@ vars.apiName ++ ": " ++ 'update-orderline-impl-sub-flow']]></ee:set-variable>
 		</ee:transform>
 		<flow-ref doc:name="Log Process Entry" doc:id="5fcd8948-2aee-4229-af0b-ed824138c63c" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Audit Process Entry" doc:id="c87615c3-b22e-444e-b67e-682fa7862989" name="audit-process-entry-sub-flow"/>
-		<set-variable value='#[payload."license-factory"]' doc:name="Set Key" doc:id="8b34568e-5f59-4b62-a63d-382509784b07" variableName="licenseFactory"/>
+		<set-variable value='#[payload.licenseFactory]' doc:name="Set Key" doc:id="8b34568e-5f59-4b62-a63d-382509784b07" variableName="licenseFactory"/>
 		<os:contains doc:name="Contains" doc:id="11da143e-7d5e-463a-9cd5-b15abf3f56c6" key="#[vars.licenseFactory]"/>
 		<choice doc:name="Choice" doc:id="d63f407b-8da0-4b0b-bacf-80ec610f4d08" >
 			<when expression="#[payload != true]">

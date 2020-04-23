@@ -34,7 +34,7 @@ calm2:
   host: "localhost"
   port: "8081"
   basePath: "/api/v1"
-  path: "/erpOrderLines/123/123"
+  path: "/erpOrderLines"
   client_id: "123"
   client_secret: "123"   
     

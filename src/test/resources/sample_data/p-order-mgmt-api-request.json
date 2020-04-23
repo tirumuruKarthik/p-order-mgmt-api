@@ -1,0 +1,54 @@
+{
+	"orderLine": [{
+		"orderLineId": "2875",
+		"order": {
+			"orderId": "12",
+			"orderedDate": "2019-10-03",
+			"orderStatus": "Active",
+			"salesContact": "abc@xyz.com"
+		},
+		"product": {
+			"itemName": "12",
+			"versioning": "1.0",
+			"legacyProductCode": "we-34-dd",
+			"commercialName": "xyz",
+			"itemClass": "class1",
+			"status": "Active",
+			"comments": "Product Details"
+		},
+		"chargingType": "GBP",
+		"shippingAddress": "en-gb",
+		"chargingPlan": {
+			"contractStartDate": "2019-10-03",
+			"contractEndDate": "2020-10-02",
+			"unitsBought": 3,
+			"unitOfSale": "5",
+			"unitsOfSaleAmount": 0,
+			"feeType": "A",
+			"productVersionList": "",
+			"usageReportingSystem": false
+		}
+	}],
+	"customer": [{
+		"legacyCustomerCode": "we-12-wd-34",
+		"accountNumber": "1234567891",
+		"customerContact": {
+			"name": "John",
+			"email": "abc@xyz.com",
+			"role": "customer"
+		},
+		"organisationName": "Org1",
+		"customerAddress": {
+			"id": "",
+			"address": "xyz street",
+			"addressLine2": "add2",
+			"addressLine3": "add3",
+			"addressLine4": "",
+			"city": "London",
+			"state": "London",
+			"postalCode": "LU1",
+			"country": "UK"
+		}
+	}],
+	"licenseFactory": "CALM2"
+}
