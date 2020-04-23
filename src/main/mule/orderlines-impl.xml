@@ -29,6 +29,33 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 				<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="b2067f13-669a-44ed-a173-e8b51690f60e" millisBetweenRetries="${retry.frequency}">
 			<try doc:name="Try" doc:id="d9c94fca-4f93-481b-81c5-e44f6a712d88" >
 				<vm:publish doc:name="Publish" doc:id="7625a237-f569-434f-b37f-bc6255b0dd3e" config-ref="VM_Config" queueName="orderQueue" />
+						<flow-ref doc:name="Orderlines-queue-msg-impl-flow" doc:id="cb4b9a52-3b70-4747-a53e-6afc06f385b0" name="orderlines-queue-msg-impl-flow"/>
+						<flow-ref doc:name="Log Process Entry" doc:id="c32781b5-27e3-4e4e-96f4-c1a86aa96084" name="log-process-entry-sub-flow"/>
+		<flow-ref doc:name="Call the Object Store for Key" doc:id="f5241d73-1b79-498e-bbe6-2735e3d3e406" name="update-orderline-impl-sub-flow" />
+		<flow-ref doc:name="Audit Process Entry" doc:id="794d3390-aaf5-4e9e-825a-16de91100327" name="audit-process-entry-sub-flow" />
+				<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="bb8adf53-a3b7-46d2-bd4a-94f9aadf0464" millisBetweenRetries="${retry.frequency}">
+			<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="cbfeec92-c1d7-4dbc-91a6-1eb9777fa22f" config-ref="s_calm2_Http_Request_configuration" path="#[vars.systemPath]" sendCorrelationId="ALWAYS" outputMimeType="application/json">
+						<http:body><![CDATA[#[vars.vOriginalPayload]]]></http:body>
+								<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Transaction-Id" : vars.transactionId,
+	"client_secret" : p('calm2.client_secret'),
+	"Authorization" : attributes.headers.Authorization,
+	"Transaction-Start-Time" : vars.transactionStartTime,
+	"ERP-Account-Number" : attributes.headers.'ERP-Account-Number',
+	"client_id" : p('calm2.client_id')
+}]]]></http:headers>				
+			
+
+
+</http:request>
+					
+
+</until-successful>
+		<flow-ref doc:name="Audit Process Exit" doc:id="45eb1f77-e3a8-4a1a-86d4-ac8f3f881c47" name="audit-process-exit-sub-flow" />
+		<flow-ref doc:name="Log Process Exit" doc:id="5770d84b-15a6-4907-9b21-e1f51e3aa4c9" name="log-process-exit-sub-flow"/>
+		
 						<error-handler >
 					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="853f1780-a751-48ba-9c46-ff9fcead6f74" type="ANY">
 						<set-variable value="#[write(error.muleMessage.payload,'application/json')]" doc:name="Set Error Log" doc:id="1f4f20fb-9867-4489-a87f-21275924f9db" variableName="loggingPayload"/>
@@ -66,7 +93,7 @@ output application/java
 		<flow-ref doc:name="Log Process Exit" doc:id="dbbfd60f-c5b1-4a57-b844-2beea46f0a04" name="log-process-exit-sub-flow"/>
 	</sub-flow>
 	<flow name="orderlines-queue-msg-impl-flow" doc:id="a63dfe08-bcf1-4958-b16d-7a4882177946" >
-		<vm:consume doc:name="Consume" doc:id="224b3454-9a8e-469d-b44c-02b5b43b2541" config-ref="VM_Config" queueName="orderQueue"/>
+		<vm:listener queueName="orderQueue" doc:name="Listener" doc:id="f73e2eb1-f9a3-4a91-978d-8f56685fc1f9" config-ref="VM_Config"/>
 		<set-variable value="#['p-order-mgmt-api']" doc:name="Set API Name" doc:id="d81da27f-79a3-41c3-b6fe-2efe91687ab6" variableName="apiName"/>
 		<ee:transform doc:name="Request Mapping Payload" doc:id="86f19bee-6d76-4765-a4e6-08eed22ee695">
 			<ee:message>
@@ -141,36 +168,6 @@ now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"}]]></ee:set-variable>
 			
 </ee:variables>
 		</ee:transform>
-		<flow-ref doc:name="Log Process Entry" doc:id="bb267605-1d93-4940-b21d-e7f1a38dd35a" name="log-process-entry-sub-flow"/>
-		<flow-ref doc:name="Call the Object Store for Key" doc:id="cb9960ec-df62-48e0-85b3-44dc414aabf7" name="update-orderline-impl-sub-flow" />
-		<flow-ref doc:name="Audit Process Entry" doc:id="24b76154-b1fa-471b-904b-f05025102f03" name="audit-process-entry-sub-flow" />
-				<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="f3c5efaf-3524-464d-82cb-2a26a07188d8" millisBetweenRetries="${retry.frequency}">
-			<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="43a72cfb-1d04-47eb-bc69-8d70b742f7ca" config-ref="s_calm2_Http_Request_configuration" path="${calm2.path}" sendCorrelationId="ALWAYS" outputMimeType="application/json">
-						<http:body><![CDATA[#[vars.vOriginalPayload]]]></http:body>
-				<http:headers ><![CDATA[#[output application/java
----
-{
-	"Transaction-Id" : vars.transactionId,
-	"client_secret" : p('calm2.client_secret'),
-	"Authorization" : attributes.headers.Authorization,
-	"Transaction-Start-Time" : vars.transactionStartTime,
-	"ERP-Account-Number" : attributes.headers.'ERP-Account-Number',
-	"client_id" : p('calm2.client_id')
-}]]]></http:headers>
-				<http:uri-params ><![CDATA[#[output application/java
----
-{
-	"erpOrderId" : attributes.headers.erpOrderId,
-	"erpOrderLineId" : attributes.headers.erpOrderLineId
-}]]]></http:uri-params>				
-			
-
-</http:request>
-					
-
-</until-successful>
-		<flow-ref doc:name="Audit Process Exit" doc:id="f11b5869-e47f-4a7b-909f-fcb22706e258" name="audit-process-exit-sub-flow" />
-		<flow-ref doc:name="Log Process Exit" doc:id="61bf4786-2168-41d8-a3b3-7267fb65f8b9" name="log-process-exit-sub-flow"/>
 		
 </flow>
 

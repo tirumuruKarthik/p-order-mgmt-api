@@ -42,8 +42,12 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 output application/java
 ---
 vars.apiName ++ ": " ++ 'put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config']]></ee:set-variable>
-				<ee:set-variable variableName="erpOrderId" ><![CDATA[attributes.uriParams.'erpOrderId']]></ee:set-variable>
+				<ee:set-variable variableName="erpOrderId" ><![CDATA[attributes.uriParams.erpOrderLineId]]></ee:set-variable>
 				<ee:set-variable variableName="erpOrderLineId" ><![CDATA[attributes.uriParams.'erpOrderLineId']]></ee:set-variable>
+				<ee:set-variable variableName="systemPath" ><![CDATA[%dw 2.0
+output application/java
+---
+p('calm2.path') ++ '/' ++ attributes.uriParams.'erpOrderId' ++ '/' ++ attributes.uriParams.'erpOrderLineId']]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
         <flow-ref doc:name="Log Receiver Entry" doc:id="a5a9a7d1-1ebd-4122-b8ea-e0b2a28a6b72" name="log-receiver-entry-sub-flow"/>
