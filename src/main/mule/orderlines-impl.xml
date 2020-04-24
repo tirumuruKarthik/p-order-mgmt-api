@@ -59,8 +59,8 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 output application/json
 ---
 {
-"responseCode" : 404,
-"responseText" : "Licene not found"
+	"responseCode" : 404,
+	"responseText" : "Licene not found"
 }
 ]]></ee:set-payload>
 							</ee:message>
@@ -95,8 +95,8 @@ output application/java
 output application/json
 ---
 {
-	responseCode: 404,
-	responseMessage: "Customer or orderline not found",
+	"responseCode": 404,
+	"responseText": "Customer or orderline not found",
 }]]></ee:set-payload>
 					</ee:message>
 					<ee:variables >
