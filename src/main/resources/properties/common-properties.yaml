@@ -1,9 +1,9 @@
 is: 
   audit:
-    toggle: "OFF"
-    payload: "OFF"
+    toggle: "ON"
+    payload: "ON"
     details:
-      toggle: "OFF"
+      toggle: "ON"
   logging:
     toggle: "OFF"
 
@@ -18,4 +18,9 @@ response:
 retry:
   frequency: "2000"
   attempts: "3"
-    
+
+db:
+ pool:
+   size:
+     max: "35"
+     min: "13" 

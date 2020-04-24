@@ -26,7 +26,14 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-				</configuration>
+				<classifier>mule-application</classifier>
+                <sharedLibraries>
+                        <sharedLibrary>
+                            <groupId>com.microsoft.sqlserver</groupId>
+                            <artifactId>mssql-jdbc</artifactId>
+                        </sharedLibrary>
+                    </sharedLibraries>
+                </configuration>
 			</plugin>
 		<plugin>
                 <groupId>com.mulesoft.munit.tools</groupId>
@@ -43,11 +50,17 @@
                     </execution>
                 </executions>
                 <configuration>
+                	<runtimeVersion>4.2.2-hf1</runtimeVersion>
                     <coverage>
                         <runCoverage>true</runCoverage>
                         <formats>
                             <format>html</format>
                         </formats>
+                        <ignoreFiles>
+						    <ignoreFile>common-auditing-framework.xml</ignoreFile>
+						    <ignoreFile>common-error-handling.xml</ignoreFile>
+						    <ignoreFile>common-logging-framework.xml</ignoreFile>
+						</ignoreFiles>
                     </coverage>
                 </configuration>
             </plugin>
@@ -90,11 +103,6 @@
             <artifactId>mule-sockets-connector</artifactId>
             <version>1.1.5</version>
             <classifier>mule-plugin</classifier>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.19</version>
         </dependency>
         <dependency>
 			<groupId>org.mule.connectors</groupId>
@@ -140,32 +148,11 @@
             <version>1.4.0</version>
             <classifier>mule-plugin</classifier>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>6.2.2.jre8</version>
+        </dependency>
     </dependencies>
-
-	<repositories>
-          <repository>
-            <id>anypoint-exchange</id>
-            <name>Anypoint Exchange</name>
-            <url>https://maven.anypoint.mulesoft.com/api/v1/maven</url>
-            <layout>default</layout>
-        </repository>
-        <repository>
-            <id>mulesoft-releases</id>
-            <name>MuleSoft Releases Repository</name>
-            <url>https://repository.mulesoft.org/releases/</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>mulesoft-releases</id>
-            <name>mulesoft release repository</name>
-            <layout>default</layout>
-            <url>https://repository.mulesoft.org/releases/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
 
 </project>

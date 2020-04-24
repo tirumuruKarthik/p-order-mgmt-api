@@ -5,7 +5,7 @@ http:
   consolePath: "/console/*"
   
 calm2:
-  host: "mule-worker-internal-qa-s-calm2-api-ir1-cloudhub.io"
+  host: "mule-worker-internal-dev-s-calm2-api.uk-e1.cloudhub.io"
   port: "8091"
   basePath: "/api/v1"
   path: "/erpOrderLines"
@@ -29,13 +29,13 @@ smtp:
 
 
 db:
- audit: 
-  config:
-   host: "db-audit-demo.czox2kq9otxp.eu-west-1.rds.amazonaws.com"
-   port: "3306"
-   user: "![SMja/nV+bgct1YakjpE9Dw==]"
-   password: "![s+9bS/QnD6wOPefrjUqlhA==]"
-   database: "sys" 
+  audit:
+   config:
+    host: "mastek-db-service.database.windows.net"
+    port: "1433"
+    user: "![zyhAtvykYzLluT/msxeadEffkC2eJ4BLJ4vTlWLugFw=]"
+    password: "![6WuGjnUC9I3aTskMvhD/Lg==]"
+    database: "MASTEK-DB" 
     
 sqs:
   accessKey: ""

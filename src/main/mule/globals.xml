@@ -18,8 +18,10 @@ http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule
 	 <http:listener-config name="p-order-mgmt-api-httpListenerConfig">
         <http:listener-connection host="${http.host}" port="${http.port}" />
     </http:listener-config>
-    <db:config name="Database_Config" doc:name="Database Config" doc:id="50527c01-ddab-40f4-a479-2edd8e07cda1" >
-		<db:my-sql-connection host="${db.audit.config.host}" port="${db.audit.config.port}" user="${secure::db.audit.config.user}" password="${secure::db.audit.config.password}" database="${db.audit.config.database}" />
+    <db:config name="Database_Config" doc:name="Database Config" doc:id="95d16654-06dc-4fc4-9d56-f9c37de4d2f5" >
+		<db:mssql-connection host="${db.audit.config.host}" user="${secure::db.audit.config.user}" password="${secure::db.audit.config.password}" databaseName="${db.audit.config.database}" port="${db.audit.config.port}">
+			<db:pooling-profile maxPoolSize="${db.pool.size.max}" minPoolSize="${db.pool.size.min}" />
+		</db:mssql-connection>
 	</db:config>
 	<import doc:name="Import" doc:id="4ae79593-4a50-4640-8935-a513ef9aace1" file="common-auditing-framework.xml" />
 	<import doc:name="Import" doc:id="85d6eceb-0648-4985-be5c-81fd90aa8a1e" file="common-logging-framework.xml" />
