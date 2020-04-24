@@ -20,6 +20,10 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 output application/java
 ---
 vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
+				<ee:set-variable variableName="authorization" ><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.authorization]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
 		<flow-ref doc:name="Log Process Entry" doc:id="8c1b5a3c-d87b-4a22-9b44-d29917fcc320" name="log-process-entry-sub-flow"/>
@@ -44,7 +48,7 @@ vars.apiName ++ ": " ++ 'orderlines-impl-sub-flow']]></ee:set-variable>
 {
 	"Transaction-Id" : vars.transactionId,
 	"client_secret" : p('calm2.client_secret'),
-	"Authorization" : attributes.headers.Authorization,
+	"Authorization" : vars.authorization,
 	"Transaction-Start-Time" : vars.transactionStartTime,
 	"ERP-Account-Number" : attributes.headers.'ERP-Account-Number',
 	"client_id" : p('calm2.client_id')
@@ -75,16 +79,33 @@ output application/java
 						</choice>
 		<flow-ref doc:name="Audit Process Exit" doc:id="45eb1f77-e3a8-4a1a-86d4-ac8f3f881c47" name="audit-process-exit-sub-flow" />
 						<flow-ref doc:name="Log Process Exit" doc:id="5770d84b-15a6-4907-9b21-e1f51e3aa4c9" name="log-process-exit-sub-flow"/>
-		
 						<error-handler >
-					<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="853f1780-a751-48ba-9c46-ff9fcead6f74" type="ANY">
-						<set-variable value="#[write(error.muleMessage.payload,'application/json')]" doc:name="Set Error Log" doc:id="1f4f20fb-9867-4489-a87f-21275924f9db" variableName="loggingPayload"/>
-						<flow-ref doc:name="Call to Logging Sub Flow" doc:id="262f7da8-09ec-4c38-9957-7e8d04a1103f" name="logging-sub-flow"/>
-						<flow-ref doc:name="log-error-sub-flow" doc:id="0c9b2eb8-877f-4b1c-84c8-a3dd35edbd05" name="log-error-sub-flow"/>
-						<flow-ref doc:name="audit-error-sub-flow" doc:id="d5377c32-3591-4ae1-82a3-75066974f3ea" name="audit-error-sub-flow"/>
-					</on-error-propagate>
-				</error-handler>
-			</try>
+							<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="7df7914f-8140-42b6-8845-46e11ac24df0" type="ANY">
+					<set-variable value="#[error.errorMessage.attributes['statusCode']]" doc:name="Set Variable httpStatusCode" doc:id="a1de15f9-9e3f-4e76-bd80-3e35ad6e60a5" variableName="httpStatusCode" />
+					<set-variable value="#['errors.calm2.response.status.' ++ vars.httpStatusCode]" doc:name="Set Variable Error Msg" doc:id="298d11f9-2405-4ff4-967a-70ef137647e8" variableName="errorMsg"/>
+					<set-variable value="#[p(vars.errorMsg)]" doc:name="Set Variable httpStatusMsg" doc:id="d160dd53-8302-487c-b3fb-6493b6974d90" variableName="httpStatusMsg"/>
+					<ee:transform doc:name="Response Error Message" doc:id="ce5b9911-ade3-45d1-8be1-135f52deaa4f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "responseCode": vars.httpStatusCode,
+    "responseText":  vars.httpStatusMsg
+}
+]]></ee:set-payload>
+			</ee:message>
+							<ee:variables >
+								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+vars.httpStatusCode]]></ee:set-variable>
+							</ee:variables>
+		</ee:transform>
+					</on-error-continue>
+						</error-handler>
+			
+</try>
 		</until-successful>
 			</when>
 			<otherwise >

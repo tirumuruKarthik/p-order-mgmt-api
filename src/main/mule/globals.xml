@@ -34,6 +34,7 @@ http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule
 
 	</http:request-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="24fcc40d-acd2-4ef7-ad67-97e3bc4c2182" file="properties/${mule.env}-properties.yaml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="8b5c055d-8331-4717-bb2a-7cc5a9077135" file="properties/error-properties.yaml" />
 	<vm:config name="VM_Config" doc:name="VM Config" doc:id="3fc7a23f-8a5f-4783-bf42-e607a27c867f">
 		<vm:connection />
 		<vm:queues >
