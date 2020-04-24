@@ -26,7 +26,7 @@ http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/sc
 	<import doc:name="Import" doc:id="b2bcef39-d751-45cc-87f1-a9afb86a8293" file="common-error-handling.xml" />
 	<configuration doc:name="Configuration" doc:id="9f81c438-98b3-479c-9c86-aa5593204bde" defaultErrorHandler-ref="GlobalExceptionStrategy" />
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="4a5338d5-939d-494e-a34a-8fab8d4baefe" file="properties/${mule.env}-properties.yaml" key="${encryption.key}" />
-    <http:request-config name="s_calm2_Http_Request_configuration" doc:name="HTTP_S_CALM2_Request_configuration" doc:id="93e2946f-8a89-4bb9-b080-cdd2eef3f102" basePath="${calm2.basePath}" responseTimeout="180000">
+    <http:request-config name="s_calm2_Http_Request_configuration" doc:name="HTTP_S_CALM2_Request_configuration" doc:id="93e2946f-8a89-4bb9-b080-cdd2eef3f102" basePath="${calm2.basePath}" responseTimeout="${response.timeout}">
 		<http:request-connection host="${calm2.host}" port="${calm2.port}" />
 
 	</http:request-config>
