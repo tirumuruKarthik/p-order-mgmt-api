@@ -30,9 +30,6 @@ attributes.headers.authorization]]></ee:set-variable>
 		<flow-ref doc:name="Audit Process Entry" doc:id="41b6310a-cdfd-4e0b-96da-099547b65f8e" name="audit-process-entry-sub-flow"/>
 		<choice doc:name="Validation Check" doc:id="4584f4cd-36f5-41c0-ba01-8d014a8e4f7b" >
 			<when expression="#[(payload.orderLine != null and isEmpty(payload.orderLine) == false) and (payload.customer != null and isEmpty(payload.customer) == false) and (payload.licenseFactory != null and isEmpty(payload.licenseFactory) == false)]">
-				
-				<until-successful maxRetries="${retry.attempts}" doc:name="Until Successful" doc:id="b2067f13-669a-44ed-a173-e8b51690f60e" millisBetweenRetries="${retry.frequency}">
-			<try doc:name="Try" doc:id="d9c94fca-4f93-481b-81c5-e44f6a712d88" >
 				<vm:publish doc:name="Publish" doc:id="7625a237-f569-434f-b37f-bc6255b0dd3e" config-ref="VM_Config" queueName="orderQueue" />
 						<flow-ref doc:name="Orderlines-queue-msg-impl-flow" doc:id="cb4b9a52-3b70-4747-a53e-6afc06f385b0" name="orderlines-queue-msg-impl-flow"/>
 						<flow-ref doc:name="Log Process Entry" doc:id="c32781b5-27e3-4e4e-96f4-c1a86aa96084" name="log-process-entry-sub-flow"/>
@@ -64,7 +61,7 @@ output application/json
 ---
 {
 	"responseCode" : 404,
-	"responseText" : "Licene not found"
+	"responseText" : "License not found"
 }
 ]]></ee:set-payload>
 							</ee:message>
@@ -79,34 +76,6 @@ output application/java
 						</choice>
 		<flow-ref doc:name="Audit Process Exit" doc:id="45eb1f77-e3a8-4a1a-86d4-ac8f3f881c47" name="audit-process-exit-sub-flow" />
 						<flow-ref doc:name="Log Process Exit" doc:id="5770d84b-15a6-4907-9b21-e1f51e3aa4c9" name="log-process-exit-sub-flow"/>
-						<error-handler >
-							<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="7df7914f-8140-42b6-8845-46e11ac24df0" type="ANY">
-					<set-variable value="#[error.errorMessage.attributes['statusCode']]" doc:name="Set Variable httpStatusCode" doc:id="a1de15f9-9e3f-4e76-bd80-3e35ad6e60a5" variableName="httpStatusCode" />
-					<set-variable value="#['errors.calm2.response.status.' ++ vars.httpStatusCode]" doc:name="Set Variable Error Msg" doc:id="298d11f9-2405-4ff4-967a-70ef137647e8" variableName="errorMsg"/>
-					<set-variable value="#[p(vars.errorMsg)]" doc:name="Set Variable httpStatusMsg" doc:id="d160dd53-8302-487c-b3fb-6493b6974d90" variableName="httpStatusMsg"/>
-					<ee:transform doc:name="Response Error Message" doc:id="ce5b9911-ade3-45d1-8be1-135f52deaa4f">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    "responseCode": vars.httpStatusCode,
-    "responseText":  vars.httpStatusMsg
-}
-]]></ee:set-payload>
-			</ee:message>
-							<ee:variables >
-								<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
-output application/java
----
-vars.httpStatusCode]]></ee:set-variable>
-							</ee:variables>
-		</ee:transform>
-					</on-error-continue>
-						</error-handler>
-			
-</try>
-		</until-successful>
 			</when>
 			<otherwise >
 				<set-variable value="#['validation failed details']" doc:name="Validation Failed" doc:id="d5aa0bf0-04e8-4484-89da-61dd2744cb30" variableName="loggingPayload" />
@@ -133,10 +102,13 @@ output application/java
 		<flow-ref doc:name="Audit Process Exit" doc:id="5d90a37f-65e8-491a-815c-8fd06ccbe56e" name="audit-process-exit-sub-flow"/>
 		<flow-ref doc:name="Log Process Exit" doc:id="dbbfd60f-c5b1-4a57-b844-2beea46f0a04" name="log-process-exit-sub-flow"/>
 	</sub-flow>
-	<flow name="orderlines-queue-msg-impl-flow" doc:id="a63dfe08-bcf1-4958-b16d-7a4882177946" >
-		<vm:listener queueName="orderQueue" doc:name="Listener" doc:id="f73e2eb1-f9a3-4a91-978d-8f56685fc1f9" config-ref="VM_Config"/>
-		<set-variable value="#['p-order-mgmt-api']" doc:name="Set API Name" doc:id="d81da27f-79a3-41c3-b6fe-2efe91687ab6" variableName="apiName"/>
-		<ee:transform doc:name="Request Mapping Payload" doc:id="86f19bee-6d76-4765-a4e6-08eed22ee695">
+
+<sub-flow name="orderlines-queue-msg-impl-flow" doc:id="42095a31-2083-4274-afcb-e5a4bf75c7f9" >
+		<vm:consume queueName="orderQueue" doc:name="Consume" doc:id="70dec360-bab3-4891-80d5-94b59edcb587" config-ref="VM_Config"/>
+		<set-variable value="#[vars.apiName ++ &quot;: &quot; ++ 'orderlines-queue-msg-impl-flow']" doc:name="Set Flow Name" doc:id="17c88b5d-5273-4454-bda2-f5d5091bfc64" variableName="flowName"/>
+		<flow-ref doc:name="Log Process Entry" doc:id="76b7b202-2ab5-4f33-ac8c-e4a12fad9706" name="log-process-entry-sub-flow"/>
+		<flow-ref doc:name="Audit Process Entry" doc:id="a16c8840-ed3f-4650-a387-de8fc7d2fbd3" name="audit-process-entry-sub-flow"/>
+		<ee:transform doc:name="Request Mapping Payload" doc:id="8c428d79-a6e4-42c3-ac9c-9cc81ccbb53f">
 			<ee:message>
 			</ee:message>
 			<ee:variables>
@@ -209,10 +181,11 @@ now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"}]]></ee:set-variable>
 			
 </ee:variables>
 		</ee:transform>
-		
-</flow>
-
-<sub-flow name="update-orderline-impl-sub-flow" doc:id="98f26578-8fc9-4346-ab1e-04a6f0f0ccaf" >
+		<set-variable value="#[vars.apiName ++ &quot;: &quot; ++ 'orderlines-queue-msg-impl-flow']" doc:name="Set Flow Name" doc:id="777418ad-9ee2-4cdd-badb-91d8947598c6" variableName="flowName" />
+		<flow-ref doc:name="Audit Process Exit" doc:id="ae8b759a-6165-4bae-8f92-78b705433b59" name="audit-process-exit-sub-flow" />
+		<flow-ref doc:name="Log Process Exit" doc:id="c2abeeb2-48a4-4e33-85dd-ab2ec7a4078f" name="log-process-exit-sub-flow" />
+	</sub-flow>
+	<sub-flow name="update-orderline-impl-sub-flow" doc:id="98f26578-8fc9-4346-ab1e-04a6f0f0ccaf" >
 		<ee:transform doc:name="Set Flow Name" doc:id="1482e00c-a815-4ce7-88d4-64671e6727fb">
 			<ee:message>
 			</ee:message>
@@ -240,17 +213,18 @@ vars.apiName ++ ": " ++ 'update-orderline-impl-sub-flow']]></ee:set-variable>
 					<when expression='#[vars.licenseFactory == "GB01CAM01"]'>
 						<os:store doc:name="Store" doc:id="297cf5e6-cdaa-4e0a-ad33-68fe0d37b7f1" key="#[vars.licenseFactory]">
 					<os:value><![CDATA[#["CALM2"]]]></os:value>
-
 				</os:store>
+				<flow-ref doc:name="Logging Sub Flow" doc:id="8557966c-2726-4d1f-8088-21178d6cc49a" name="logging-sub-flow"/>
+                <flow-ref doc:name="Audit Sub Flow" doc:id="79f00902-549e-4629-93a6-64e17975a9a4" name="audit-process-entry-sub-flow"/>
 					</when>
 					<otherwise >
 						<set-payload value="#[null]" doc:name="Set Payload" doc:id="2114470c-7520-496a-9c6f-64aa2adc8f00" />
-						<flow-ref doc:name="Log Process Exit" doc:id="b27896d3-3ca2-49da-b718-f9544062ab25" name="log-process-exit-sub-flow" />
-						<flow-ref doc:name="Audit Process Exit" doc:id="05fa4f5b-d24a-411e-b887-5ed46f62f5aa" name="audit-process-exit-sub-flow" />
 					</otherwise>
 				</choice>
 			
 </otherwise>
 		</choice>
+		<flow-ref doc:name="Audit Process Exit" doc:id="cd5ebcb0-a4d9-4417-99ce-baef305e7921" name="audit-process-exit-sub-flow" />
+		<flow-ref doc:name="Log Process Exit" doc:id="d9492b15-4cfc-422a-9173-e09594263d21" name="log-process-exit-sub-flow" />
 	</sub-flow>
 </mule>
