@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
 	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
 		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
 		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
@@ -15,6 +17,11 @@
 					<munit-tools:with-attribute whereValue="Publish" attributeName="doc:name" />
 				</munit-tools:with-attributes>
 			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="ac6c3deb-4c8c-4510-adf3-4b3ebfb3e023" processor="vm:consume">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Consume" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="Mock when" doc:id="13b82422-cf77-4bff-8e06-d12c3f0c3fb6" processor="http:request">
 				<munit-tools:with-attributes >
 					<munit-tools:with-attribute whereValue="Invoke System Layer of CALM2 API to Put Orderlines" attributeName="doc:name" />
@@ -22,13 +29,141 @@
 			</munit-tools:mock-when>
 		</munit:behavior>
 		<munit:execution >
+			<ee:transform doc:name="Set Attributes" doc:id="9b16f70b-336c-4813-82db-06b969dd8067">
+				<ee:message>
+					<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	headers: {
+		"client_id": "3ddbd94c96c04aa2a0febb7603e12r4c2",
+		"client_secret": "3ddbd94c96c04aa2a0febb7603e12r4c2",
+		"Transaction-Id": "2ddbd94c-96c0-4aa2-a0fe-bb7603ebca7c",
+		"Transaction-Start-Time": "2018-08-02T16:58:12.121Z",
+		"ERP-Account-Number": "Pe124",
+		"authorization": 1234,
+	},
+	uriParams: {
+		erpOrderId : 1234,
+		erpOrderLineId: 1234
+	}
+}]]></ee:set-attributes>
+				</ee:message>
+				<ee:variables >
+				</ee:variables>
+			</ee:transform>
 			<set-payload value="#[MunitTools::getResourceAsString('sample_data/p-order-mgmt-api-request.json')]" doc:name="Set Payload" doc:id="b63b0039-9653-44ba-83d6-c43b06d4434f" mimeType="application/json"/>
 			<flow-ref doc:name="Flow-ref to put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config" doc:id="17700519-818e-41c5-81f4-0670dc0989e1" name="put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config"/>
 		</munit:execution>
-		<munit:validation >
-			<munit-tools:assert-that doc:name="Assert that" doc:id="bade5388-5300-4bb8-90a5-9613254aaeae" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		<munit:validation>
+			<munit-tools:assert-equals doc:name="Assert equals License not found" doc:id="75014acf-9d79-4b2a-99f0-fbb8ba7f6bb4" actual="#[payload.responseText]" expected='#["License not found"]'/>
 		</munit:validation>
 	</munit:test>
+	
+	<munit:test name="p-order-mgmt-api-test-suite-put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-configTest1" doc:id="21675d47-65b2-4bb9-a5c9-7e8cde1c88f8" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="128eb906-f640-4b7d-bd9d-008eebf1a31f" processor="vm:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Publish" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="c3438905-b4f5-47db-b7a9-87985a1d73bd" processor="vm:consume">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Consume" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="0a25fa91-efd0-471f-b5f7-9367822de950" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Invoke System Layer of CALM2 API to Put Orderlines" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<ee:transform doc:name="Set Attributes" doc:id="8ef36f9b-e802-4628-b53f-0b3d746cb1b3">
+				<ee:message>
+					<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	headers: {
+		"client_id": "3ddbd94c96c04aa2a0febb7603e12r4c2",
+		"client_secret": "3ddbd94c96c04aa2a0febb7603e12r4c2",
+		"Transaction-Id": "2ddbd94c-96c0-4aa2-a0fe-bb7603ebca7c",
+		"Transaction-Start-Time": "2018-08-02T16:58:12.121Z",
+		"ERP-Account-Number": "Pe124",
+		"authorization": 1234,
+	},
+	uriParams: {
+		erpOrderId : 1234,
+		erpOrderLineId: 1234
+	}
+}]]></ee:set-attributes>
+				</ee:message>
+				<ee:variables >
+				</ee:variables>
+			</ee:transform>
+			<set-payload value="#[MunitTools::getResourceAsString('sample_data/p-order-mgmt-api-request-invalid.json')]" doc:name="Set Payload" doc:id="f8099880-5945-43a5-9520-02e1e1f97591" mimeType="application/json"/>
+			<flow-ref doc:name="Flow-ref to put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config" doc:id="c0c2d02f-462b-4b24-9b5a-f32acf9c55dc" name="put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-equals doc:name="Assert equals Customer or orderline not found" doc:id="d650d2cb-06cc-4fef-81d7-2f150d51c6e3" actual="#[payload.responseText]" expected='#["Customer or orderline not found"]'/>
+		</munit:validation>
+	</munit:test>
+	
+		<munit:test name="p-order-mgmt-api-test-suite-put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-configTest-2" doc:id="c4f19e80-02af-42ed-8f5d-bd411f8a8a6c" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="d71824b8-d19e-4f95-9232-405fdec851c2" processor="vm:publish">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Publish" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="c24cef99-b560-4b42-ac60-8291acb0d9db" processor="vm:consume">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Consume" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="cb50301f-e78d-4bbd-8b9a-12d9e882f799" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Invoke System Layer of CALM2 API to Put Orderlines" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('sample_data/p-order-mgmt-api-response.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			
+</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<ee:transform doc:name="Set Attributes" doc:id="4eba8b3c-47e3-4e40-a03f-557f96222470">
+				<ee:message>
+					<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	headers: {
+		"client_id": "3ddbd94c96c04aa2a0febb7603e12r4c2",
+		"client_secret": "3ddbd94c96c04aa2a0febb7603e12r4c2",
+		"Transaction-Id": "2ddbd94c-96c0-4aa2-a0fe-bb7603ebca7c",
+		"Transaction-Start-Time": "2018-08-02T16:58:12.121Z",
+		"ERP-Account-Number": "Pe124",
+		"authorization": 1234,
+	},
+	uriParams: {
+		erpOrderId : 1234,
+		erpOrderLineId: 1234
+	}
+}]]></ee:set-attributes>
+				</ee:message>
+				<ee:variables >
+				</ee:variables>
+			</ee:transform>
+			<set-payload value="#[MunitTools::getResourceAsString('sample_data/p-order-mgmt-api-request-valid-licensekey.json')]" doc:name="Set Payload" doc:id="7a0cb15f-1c64-4fd3-b951-3991a8e5e33a" mimeType="application/json"/>
+			<flow-ref doc:name="Flow-ref to put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config" doc:id="3533710c-957b-49d6-81e4-9c203d4d9dfd" name="put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config"/>
+		</munit:execution>
+		<munit:validation>
+			<munit-tools:assert-equals doc:name="Assert equals" doc:id="701bf6a5-341f-41ea-a264-9f50270eb7e2" actual="#[payload.responseText]" expected="#['success']"/>
+		</munit:validation>
+	</munit:test>
+	
 
 
 </mule>

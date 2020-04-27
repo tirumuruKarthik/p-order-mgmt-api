@@ -1,0 +1,25 @@
+{
+	"orderLine": [],
+	"customer": [{
+		"legacyCustomerCode": "we-12-wd-34",
+		"accountNumber": "1234567891",
+		"customerContact": {
+			"name": "John",
+			"email": "abc@xyz.com",
+			"role": "customer"
+		},
+		"organisationName": "Org1",
+		"customerAddress": {
+			"id": "",
+			"address": "xyz street",
+			"addressLine2": "add2",
+			"addressLine3": "add3",
+			"addressLine4": "",
+			"city": "London",
+			"state": "London",
+			"postalCode": "LU1",
+			"country": "UK"
+		}
+	}],
+	"licenseFactory": "GB01CAM0123"
+}
