@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
 http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule/cloudhub/current/mule-cloudhub.xsd">
 	 <http:listener-config name="p-order-mgmt-api-httpListenerConfig">
-        <http:listener-connection host="${http.host}" port="${http.port}" />
+        <http:listener-connection host="${http.host}" port="${http.private.port}" />
     </http:listener-config>
     <db:config name="Database_Config" doc:name="Database Config" doc:id="95d16654-06dc-4fc4-9d56-f9c37de4d2f5" >
 		<db:mssql-connection host="${db.audit.config.host}" user="${secure::db.audit.config.user}" password="${secure::db.audit.config.password}" databaseName="${db.audit.config.database}" port="${db.audit.config.port}">

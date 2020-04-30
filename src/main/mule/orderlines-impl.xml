@@ -96,7 +96,7 @@ output application/java
 		<set-variable value="#[vars.apiName ++ &quot;: &quot; ++ 'orderlines-queue-msg-impl-flow']" doc:name="Set Flow Name" doc:id="17c88b5d-5273-4454-bda2-f5d5091bfc64" variableName="flowName"/>
 		<flow-ref doc:name="Log Process Entry" doc:id="76b7b202-2ab5-4f33-ac8c-e4a12fad9706" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Audit Process Entry" doc:id="a16c8840-ed3f-4650-a387-de8fc7d2fbd3" name="audit-process-entry-sub-flow"/>
-		<ee:transform doc:name="Request Mapping Payload" doc:id="8c428d79-a6e4-42c3-ac9c-9cc81ccbb53f">
+		<ee:transform doc:name="Request Payload" doc:id="8c428d79-a6e4-42c3-ac9c-9cc81ccbb53f">
 			<ee:message>
 			</ee:message>
 			<ee:variables>
