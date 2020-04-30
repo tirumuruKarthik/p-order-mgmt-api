@@ -46,4 +46,7 @@ http://www.mulesoft.org/schema/mule/cloudhub http://www.mulesoft.org/schema/mule
 	<cloudhub:config name="CloudHub_Config" doc:name="CloudHub Config" doc:id="697888c1-b487-4caa-98ab-a923ee7703d2" >
 		<cloudhub:connection username="${secure::cloudhub.username}" password="${secure::cloudhub.password}" environment="${environment.id}" />
 	</cloudhub:config>
+	<http:request-config name="s_dblookup_HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="d436ab19-2633-449a-849f-6ab0ae023f3b" basePath="${lookup.basePath}" >
+		<http:request-connection host="${lookup.host}" port="${lookup.port}" />
+	</http:request-config>
 </mule>

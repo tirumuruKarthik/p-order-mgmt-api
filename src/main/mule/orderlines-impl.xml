@@ -10,6 +10,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	
 	<sub-flow name="orderlines-impl-sub-flow" doc:id="fbc1aa57-374a-4cf1-85de-abaa4ba116a0">
 		<ee:transform doc:name="Set Flow Name"
 			doc:id="db6bad5e-d25b-4fe5-b4f4-620b5156c7f8">
@@ -29,32 +30,19 @@ attributes.headers.authorization]]></ee:set-variable>
 		<flow-ref doc:name="Log Process Entry" doc:id="8c1b5a3c-d87b-4a22-9b44-d29917fcc320" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Audit Process Entry" doc:id="41b6310a-cdfd-4e0b-96da-099547b65f8e" name="audit-process-entry-sub-flow"/>
 		<choice doc:name="Validation Check" doc:id="4584f4cd-36f5-41c0-ba01-8d014a8e4f7b" >
-			<when expression="#[(payload.orderLine != null and isEmpty(payload.orderLine) == false) and (payload.customer != null and isEmpty(payload.customer) == false) and (payload.licenseFactory != null and isEmpty(payload.licenseFactory) == false)]">
+			<when expression="#[(payload.orderLine != null and isEmpty(payload.orderLine) == false) and (payload.order != null and isEmpty(payload.order) == false) and (payload.licenseFactory != null and isEmpty(payload.licenseFactory) == false)]">
 				<vm:publish doc:name="Publish" doc:id="7625a237-f569-434f-b37f-bc6255b0dd3e" config-ref="VM_Config" queueName="orderQueue" />
 						<flow-ref doc:name="Orderlines-queue-msg-impl-flow" doc:id="cb4b9a52-3b70-4747-a53e-6afc06f385b0" name="orderlines-queue-msg-impl-flow"/>
 						<flow-ref doc:name="Log Process Entry" doc:id="c32781b5-27e3-4e4e-96f4-c1a86aa96084" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Call the Object Store for Key" doc:id="f5241d73-1b79-498e-bbe6-2735e3d3e406" name="update-orderline-impl-sub-flow" />
 		<flow-ref doc:name="Audit Process Entry" doc:id="794d3390-aaf5-4e9e-825a-16de91100327" name="audit-process-entry-sub-flow" />
 				<choice doc:name="Choice" doc:id="7dbe22c9-9184-406b-86a0-c98506f4b8c9" >
-							<when expression='#[payload != null]'>
-								
-									<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="cbfeec92-c1d7-4dbc-91a6-1eb9777fa22f" config-ref="s_calm2_Http_Request_configuration" path="#[vars.systemPath]" sendCorrelationId="ALWAYS" outputMimeType="application/json">
-						<http:body><![CDATA[#[vars.vOriginalPayload]]]></http:body>
-								<http:headers><![CDATA[#[output application/java
----
-{
-	"Transaction-Id" : vars.transactionId,
-	"client_secret" : p('calm2.client_secret'),
-	"Authorization" : vars.authorization,
-	"Transaction-Start-Time" : vars.transactionStartTime,
-	"ERP-Account-Number" : attributes.headers.'ERP-Account-Number',
-	"client_id" : p('calm2.client_id')
-}]]]></http:headers>
-</http:request>
+							<when expression="#[payload.id != null]">
+						<flow-ref doc:name="Flow Reference" doc:id="b23846da-1c4c-4c5d-b33f-520f8cd51e7e" name="call-target-endpoint-sub-flow" />
 
 							</when>
-							<otherwise >
-								<ee:transform doc:name="Licene not found" doc:id="c26bc9eb-6cd2-47eb-a967-d145f1aaa5bd" >
+					<otherwise >
+								<ee:transform doc:name="License not found" doc:id="c26bc9eb-6cd2-47eb-a967-d145f1aaa5bd" >
 							<ee:message >
 								<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
@@ -115,61 +103,7 @@ output application/java
 				<ee:set-variable variableName="vOriginalPayload"><![CDATA[%dw 2.0
 output application/json
 ---
-{
-	orderLine: payload.orderLine map (item , index) -> {
-		orderLineId : item.orderLineId,
-		order: {
-			orderId: item.order.orderId,
-			orderDate: item.order.orderedDate,
-            orderStatus: item.order.orderStatus,
-            salesContact: item.order.salesContact
-
-		},
-		product: {
-			productCode: item.product.itemName,
-            versioning: item.product.versioning,
-            productClass: item.product.itemClass,
-            commercialName: ""
-		},
-		chargingPlan: {
-			startDate: item.chargingPlan.contractStartDate,
-			endDate: item.chargingPlan.contractEndDate,
-			unitType: item.chargingPlan.unitOfSale,
-			unitsBought: item.chargingPlan.unitsBought,
-			feeType: item.chargingPlan.feeType,
-			productVersionList: item.chargingPlan.productVersionList,
-			usageReportingSystem
-: item.chargingPlan.usageReportingSystem
-		}
-	},
-	customer: payload.customer map (cust, custIndex) ->{
-        legacyCustomerCode: cust.legacyCustomerCode,
-		companyName: cust.organisationName,
-        customerCode: cust.accountNumber,
-        contact:{
-         name: cust.customerContact.name,
-        email: cust.customerContact.email,
-        role: cust.customerContact.role
-
-        },
- 
-        address:{
-
-            id: cust.customerAddress.id,
-            address: cust.customerAddress.address,
-            addressLine2: cust.customerAddress.addressLine2,
-            addressLine3: cust.customerAddress.addressLine3,
-            addressLine4: cust.customerAddress.addressLine4,
-            city: cust.customerAddress.city,
-            state: cust.customerAddress.state,
-            postalCode: cust.customerAddress.postalCode,
-            country: cust.customerAddress.country
-
-        }
-
-	},
-    licenseFactory: payload.licenseFactory
-}]]></ee:set-variable>
+payload]]></ee:set-variable>
 				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
 output application/java
 ---
@@ -199,32 +133,84 @@ vars.apiName ++ ": " ++ 'update-orderline-impl-sub-flow']]></ee:set-variable>
 		<flow-ref doc:name="Log Process Entry" doc:id="5fcd8948-2aee-4229-af0b-ed824138c63c" name="log-process-entry-sub-flow"/>
 		<flow-ref doc:name="Audit Process Entry" doc:id="c87615c3-b22e-444e-b67e-682fa7862989" name="audit-process-entry-sub-flow"/>
 		<set-variable value='#[payload.licenseFactory]' doc:name="Set Key" doc:id="8b34568e-5f59-4b62-a63d-382509784b07" variableName="licenseFactory"/>
-		<os:contains doc:name="Contains" doc:id="11da143e-7d5e-463a-9cd5-b15abf3f56c6" key="#[vars.licenseFactory]"/>
+		<os:contains doc:name="Contains" doc:id="8661aebc-62bd-437b-9c19-00f350bab6de" key="#[vars.licenseFactory]"/>
 		<choice doc:name="Choice" doc:id="d63f407b-8da0-4b0b-bacf-80ec610f4d08" >
 			<when expression="#[payload == true]">
 				<os:retrieve doc:name="Retrieve" doc:id="3c2a221b-1a28-4cb1-b91a-9cd5e388b35a" key="#[vars.licenseFactory]">
 				</os:retrieve>
+				<os:clear doc:name="Clear" doc:id="7c5fdcc4-cf71-4d6b-8227-8409fe5a9698" />
 				<flow-ref doc:name="Logging Sub Flow" doc:id="8aff0e01-b918-489a-ab8f-f5918a0b9ffc" name="logging-sub-flow"/>
                 <flow-ref doc:name="Audit Sub Flow" doc:id="3e594d00-048c-4cba-bf0b-00a38ef9649e" name="audit-process-entry-sub-flow"/>
 			
 </when>
-			<otherwise >
-				<choice doc:name="Choice" doc:id="bf1223b0-4dd4-44a7-b9e5-6229e6f9d731">
-					<when expression='#[vars.licenseFactory == "GB01CAM01"]'>
-						<os:store doc:name="Store" doc:id="297cf5e6-cdaa-4e0a-ad33-68fe0d37b7f1" key="#[vars.licenseFactory]">
-					<os:value><![CDATA[#["CALM2"]]]></os:value>
-				</os:store>
-				<flow-ref doc:name="Logging Sub Flow" doc:id="8557966c-2726-4d1f-8088-21178d6cc49a" name="logging-sub-flow"/>
-                <flow-ref doc:name="Audit Sub Flow" doc:id="79f00902-549e-4629-93a6-64e17975a9a4" name="audit-process-entry-sub-flow"/>
-					</when>
-					<otherwise >
-						<set-payload value="#[null]" doc:name="Set Payload" doc:id="2114470c-7520-496a-9c6f-64aa2adc8f00" />
-					</otherwise>
-				</choice>
+			<otherwise>
+				<flow-ref doc:name="call s-db-lookup-api-sub-flow" doc:id="b00d1fb6-a3d0-49d5-9980-b02138462d03" name="call-dblookup-ap-sub-flow"/>
+				<os:store doc:name="Store" doc:id="e40790cb-8c4a-445a-b5c3-2362ab45c056" key="#[vars.licenseFactory]"/>
 			
 </otherwise>
 		</choice>
 		<flow-ref doc:name="Audit Process Exit" doc:id="cd5ebcb0-a4d9-4417-99ce-baef305e7921" name="audit-process-exit-sub-flow" />
 		<flow-ref doc:name="Log Process Exit" doc:id="d9492b15-4cfc-422a-9173-e09594263d21" name="log-process-exit-sub-flow" />
+	</sub-flow>
+	<sub-flow name="call-dblookup-ap-sub-flow" doc:id="746e0772-4842-4d7b-9404-59461c7afc66" >
+		<set-variable value="#[vars.apiName ++ &quot;: &quot; ++ 'call-dblookup-ap-sub-flow']" doc:name="Set Flow Name" doc:id="64aac5d0-b53a-4290-a76c-8f2b93c87a18" variableName="flowName" />
+		<flow-ref doc:name="Log process entry" doc:id="0be8c24b-fbea-47b8-9e03-f31195206bfa" name="log-process-entry-sub-flow"/>
+		<flow-ref doc:name="Audit process entry" doc:id="8375fe26-8972-4e09-9f4b-cdb42d22a445" name="audit-process-entry-sub-flow"/>
+		<http:request method="GET" doc:name="Invoke lookup api System layer" doc:id="37f86184-a77a-4428-a71e-f56423e5436e" config-ref="s_dblookup_HTTP_Request_configuration" path="${lookup.factoryIdPath}" responseTimeout="${response.timeout}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Transaction-Id" : vars.transactionId,
+	"client_secret" : p('secure::lookup.clientSecret'),
+	"Transaction-Start-Time" : vars.transactionStartTime,
+	"client_id" : p('lookup.clientId')
+}]]]></http:headers>
+					<http:query-params><![CDATA[#[output application/java
+---
+{
+	"factoryId" : vars.licenseFactory
+}]]]></http:query-params>
+		</http:request>
+		<set-variable value="#[vars.apiName ++ &quot;: &quot; ++ 'call-dblookup-ap-sub-flow']" doc:name="Set Flow Name" doc:id="644422d9-53c2-42b5-b094-b7935a2d48c5" variableName="flowName" />
+		<flow-ref doc:name="Audit process exit" doc:id="e0664540-b9ea-46fe-84c9-6e142df57d90" name="audit-process-exit-sub-flow"/>
+		<flow-ref doc:name="Log process exit " doc:id="3a1dbc1f-bf53-48da-af3f-0363f49759a6" name="log-process-exit-sub-flow"/>
+	</sub-flow>
+	<sub-flow name="call-target-endpoint-sub-flow" doc:id="2b4c5683-4e5c-4a85-8d33-86eef7db872c" >
+		<choice doc:name="Choice" doc:id="6abb2249-9ed8-4df5-aee7-320ef5abd28e" >
+			<when expression='#[payload.endpoint == "CALM2"]'>
+				<set-variable value="#[vars.apiName ++ &quot;: &quot; ++ 'call-target-endpoint-sub-flow']" doc:name="Set Flow Name" doc:id="f3d1ed70-2170-455f-9489-a36feef60d2a" variableName="flowName" />
+				<flow-ref doc:name="Log process entry" doc:id="23600fc4-58ce-4f8d-974f-0a72f1bc885e" name="log-process-entry-sub-flow"/>
+				<flow-ref doc:name="Audit process entry" doc:id="3a035f51-7cc9-4533-9919-b493c5d13ef2" name="audit-process-entry-sub-flow"/>
+				<http:request method="PUT" doc:name="Invoke System Layer of CALM2 API to Put Orderlines" doc:id="33dafe2d-9696-40c1-91f8-b0764b60d9ef" config-ref="s_calm2_Http_Request_configuration" path="#[vars.systemPath]" sendCorrelationId="ALWAYS" outputMimeType="application/json">
+						<http:body><![CDATA[#[vars.vOriginalPayload]]]></http:body>
+								<http:headers><![CDATA[#[output application/java
+---
+{
+	"Transaction-Id" : vars.transactionId,
+	"client_secret" : p('calm2.client_secret'),
+	"Authorization" : vars.authorization,
+	"Transaction-Start-Time" : vars.transactionStartTime,
+	"ERP-Account-Number" : attributes.headers.'ERP-Account-Number',
+	"client_id" : p('calm2.client_id')
+}]]]></http:headers>
+</http:request>
+		<set-variable value="#[vars.apiName ++ &quot;: &quot; ++ 'call-target-endpoint-sub-flow']" doc:name="Set Flow Name" doc:id="79ffa6d1-237e-4927-b32d-7302fe397761" variableName="flowName" />
+		<flow-ref doc:name="Audit process exit" doc:id="9379c147-ce5b-4864-9fb6-5bd7a105b651" name="audit-process-exit-sub-flow"/>
+		<flow-ref doc:name="Log process exit " doc:id="f6200d75-8c2f-4e26-8327-19ede2b91bfa" name="log-process-exit-sub-flow"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="edb4c81e-bbab-4fd4-b0e9-ff896cb1c487" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"responseCode" : 404,
+	"responseText" : "Invalid license factory id"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
 	</sub-flow>
 </mule>

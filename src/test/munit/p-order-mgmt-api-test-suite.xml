@@ -27,6 +27,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 					<munit-tools:with-attribute whereValue="Invoke System Layer of CALM2 API to Put Orderlines" attributeName="doc:name" />
 				</munit-tools:with-attributes>
 			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="7248913b-a388-401a-83fb-985d051a70c9" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Invoke lookup api System layer" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('sample_data/db-invalid-response.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
 		</munit:behavior>
 		<munit:execution >
 			<ee:transform doc:name="Set Attributes" doc:id="9b16f70b-336c-4813-82db-06b969dd8067">
@@ -77,6 +85,14 @@ output application/java
 					<munit-tools:with-attribute whereValue="Invoke System Layer of CALM2 API to Put Orderlines" attributeName="doc:name" />
 				</munit-tools:with-attributes>
 			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="65cc3597-af13-41fd-9b65-b808390679a1" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Invoke lookup api System layer" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('sample_data/db-invalid-response.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
 		</munit:behavior>
 		<munit:execution >
 			<ee:transform doc:name="Set Attributes" doc:id="8ef36f9b-e802-4628-b53f-0b3d746cb1b3">
@@ -110,7 +126,7 @@ output application/java
 		</munit:validation>
 	</munit:test>
 	
-		<munit:test name="p-order-mgmt-api-test-suite-put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-configTest-2" doc:id="c4f19e80-02af-42ed-8f5d-bd411f8a8a6c" description="Test">
+		<munit:test name="p-order-mgmt-api-test-suite-put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\success" doc:id="c4f19e80-02af-42ed-8f5d-bd411f8a8a6c" description="Test">
 		<munit:behavior >
 			<munit-tools:mock-when doc:name="Mock when" doc:id="d71824b8-d19e-4f95-9232-405fdec851c2" processor="vm:publish">
 				<munit-tools:with-attributes >
@@ -131,6 +147,14 @@ output application/java
 				</munit-tools:then-return>
 			
 </munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="Mock when" doc:id="29287a52-86da-41ea-a85f-cfc6b101941f" processor="http:request">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Invoke lookup api System layer" attributeName="doc:name" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[MunitTools::getResourceAsString('sample_data/db-valid-response.json')]" mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
 		</munit:behavior>
 		<munit:execution >
 			<ee:transform doc:name="Set Attributes" doc:id="4eba8b3c-47e3-4e40-a03f-557f96222470">

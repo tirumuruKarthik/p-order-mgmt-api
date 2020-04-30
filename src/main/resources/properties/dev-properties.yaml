@@ -41,3 +41,11 @@ sqs:
   accessKey: ""
   secretKey: ""
   region: ""
+  
+lookup:
+  host: "mule-worker-internal-dev-s-lookup-api.uk-e1.cloudhub.io"
+  port: "8091"
+  basePath: "/api/v1"
+  factoryIdPath: "/factory/license-endpoint"
+  clientId: "1234"
+  clientSecret: "4321"

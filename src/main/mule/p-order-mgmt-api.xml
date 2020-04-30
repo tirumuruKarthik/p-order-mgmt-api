@@ -1,26 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
-   
-    <apikit:config name="p-order-mgmt-api-config" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" api="api/p-order-mgmt-api.raml">
-		<apikit:flow-mappings >
-			<apikit:flow-mapping resource="/erpOrderLines/{erpOrderId}/{erpOrderLineId}" action="put" content-type="application/json" flow-ref="put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config" />
-		</apikit:flow-mappings>
-	</apikit:config>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+    <apikit:config name="p-order-mgmt-api-config" api="p-order-mgmt-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="p-order-mgmt-api-main">
         <http:listener config-ref="p-order-mgmt-api-httpListenerConfig" path="${http.basePath}">
-            <http:response statusCode="#[vars.httpStatus]">
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
-            </http:response>
-            <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body><![CDATA[#[payload]]]></http:body>
-                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
-            </http:error-response>
-        </http:listener>
-        <apikit:router config-ref="p-order-mgmt-api-config" />
-    </flow>
-    <flow name="p-order-mgmt-api-console">
-        <http:listener config-ref="p-order-mgmt-api-httpListenerConfig" path="/console/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
@@ -29,31 +11,59 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
                 <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:console config-ref="p-order-mgmt-api-config" />
+        <apikit:router config-ref="p-order-mgmt-api-config"/>
     </flow>
-    <flow name="put:\erpLicenseFulfillmentStatus\(erpOrderId):\(erpOrderLineId):application\json:p-order-mgmt-api-config">
-		<logger level="INFO" doc:name="Logger" doc:id="641114b2-1548-4911-a6bc-e34645f5ad57" message="#[payload]"/>
+    <flow name="p-order-mgmt-api-console">
+        <http:listener config-ref="p-order-mgmt-api-httpListenerConfig" path="${http.consolePath}">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="p-order-mgmt-api-config"/>
     </flow>
     <flow name="put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config">
-        <set-variable value="#['p-order-mgmt-api']" doc:name="Set API Name" doc:id="576f8370-a5d0-49b1-b6d7-f3c0e9b4bf24" variableName="apiName"/>
-		<ee:transform doc:name="Set Variables" doc:id="a32095f8-7674-4b12-b58f-d0f879c38338" >
-			<ee:variables >
-				<ee:set-variable variableName="flowName" ><![CDATA[%dw 2.0
+        <set-variable value="#['p-order-mgmt-api']" doc:name="Set API Name" doc:id="c3513176-1d8f-4f4e-a2b7-6e93bba09843" variableName="apiName" />
+        <ee:transform doc:name="Set Variables" doc:id="e5d66689-ae27-4a4f-afab-4bd3bec43257">
+            <ee:variables>
+                <ee:set-variable variableName="flowName"><![CDATA[%dw 2.0
 output application/java
 ---
 vars.apiName ++ ": " ++ 'put:\erpOrderLines\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config']]></ee:set-variable>
-				<ee:set-variable variableName="erpOrderId" ><![CDATA[attributes.uriParams.erpOrderLineId]]></ee:set-variable>
-				<ee:set-variable variableName="erpOrderLineId" ><![CDATA[attributes.uriParams.'erpOrderLineId']]></ee:set-variable>
-				<ee:set-variable variableName="systemPath" ><![CDATA[%dw 2.0
+                <ee:set-variable variableName="systemPath"><![CDATA[%dw 2.0
 output application/java
 ---
 p('calm2.path') ++ '/' ++ attributes.uriParams.'erpOrderId' ++ '/' ++ attributes.uriParams.'erpOrderLineId']]></ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-        <flow-ref doc:name="Log Receiver Entry" doc:id="a5a9a7d1-1ebd-4122-b8ea-e0b2a28a6b72" name="log-receiver-entry-sub-flow"/>
-		<flow-ref doc:name="Audit Receiver Entry" doc:id="10756cdc-8aef-4185-a3bc-83821d33770e" name="audit-receiver-entry-sub-flow"/>
-		<flow-ref doc:name="Order Lines Impl Flow" doc:id="6eb13405-18f0-49f3-9a39-a345c0004c05" name="orderlines-impl-sub-flow"/>
-		<flow-ref doc:name="Audit Dispatcher Exit" doc:id="286f841c-98d4-40ba-97a1-bc7e06fafc4b" name="audit-dispatcher-exit-sub-flow"/>
-		<flow-ref doc:name="Log Dispatcher Exit" doc:id="d534a2c2-2e81-431a-bc32-1ba0b5108c43" name="log-dispatcher-exit-sub-flow"/>
+                <ee:set-variable variableName="primaryKey"><![CDATA[attributes.uriParams.erpOrderLineId]]></ee:set-variable>
+                <ee:set-variable variableName="secondaryKey"><![CDATA[attributes.uriParams.'erpOrderLineId']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="Log Receiver Entry" doc:id="bc1fe54c-b413-4200-8b51-fcbddd6f121c" name="log-receiver-entry-sub-flow" />
+        <flow-ref doc:name="Audit Receiver Entry" doc:id="53d13d21-0161-416f-928e-3f3e5c96932b" name="audit-receiver-entry-sub-flow" />
+        <flow-ref doc:name="Order Lines Impl Flow" doc:id="582114e8-7a1b-47de-bedb-a74e2c9861ce" name="orderlines-impl-sub-flow" />
+        <flow-ref doc:name="Audit Dispatcher Exit" doc:id="e80adf9f-6863-431f-aaa3-877f832792d3" name="audit-dispatcher-exit-sub-flow" />
+        <flow-ref doc:name="Log Dispatcher Exit" doc:id="fbeb1961-e940-438c-b232-32a08099f1e3" name="log-dispatcher-exit-sub-flow" />
+    </flow>
+    <flow name="put:\erpLicenseFulfillmentStatus\(erpOrderId)\(erpOrderLineId):application\json:p-order-mgmt-api-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="erpOrderId">attributes.uriParams.'erpOrderId'</ee:set-variable>
+                <ee:set-variable variableName="erpOrderLineId">attributes.uriParams.'erpOrderLineId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform xsi:schemaLocation="http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  responseCode: 0,
+  responseText: "success"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
     </flow>
 </mule>

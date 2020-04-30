@@ -3,6 +3,9 @@ type: object
 displayName: order
 properties:
   orderId?: string
-  orderedDate?: date-only  
+  orderDate?: date-only
+  customer?: 
+    displayName: product details
+    type: !include customer.raml
   orderStatus?: string
   salesContact?: string

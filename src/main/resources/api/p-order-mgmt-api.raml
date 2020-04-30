@@ -4,9 +4,9 @@ title: p-order-mgmt-api
 version: v1
 
 uses:
-  dataTypesLib: exchange_modules/600fe2e7-d5ea-4266-abb3-7fb67efb9c53/datatypeslibrary/1.0.0/datatypeslibrary.raml
-  resourceTypesLib: exchange_modules/600fe2e7-d5ea-4266-abb3-7fb67efb9c53/resourcetypeslibrary/1.0.0/resourcetypeslibrary.raml
-  traitsLib: exchange_modules/600fe2e7-d5ea-4266-abb3-7fb67efb9c53/traitslibrary/1.0.0/traitslibrary.raml
+  dataTypesLib: exchange_modules/600fe2e7-d5ea-4266-abb3-7fb67efb9c53/datatypeslibrary/1.0.1/datatypeslibrary.raml
+  resourceTypesLib: exchange_modules/600fe2e7-d5ea-4266-abb3-7fb67efb9c53/resourcetypeslibrary/1.0.1/resourcetypeslibrary.raml
+  traitsLib: exchange_modules/600fe2e7-d5ea-4266-abb3-7fb67efb9c53/traitslibrary/1.0.1/traitslibrary.raml
   
 /erpOrderLines:
   description: |
@@ -20,6 +20,7 @@ uses:
       type:
         resourceTypesLib.member:
       is: [traitsLib.traceable: {required: true}, traitsLib.secured: {required: true}]
+      securedBy: [traitsLib.oauth_2_0]
       put:
         description: |
           Upsert orderline to target system. e.g CALM2
@@ -32,8 +33,8 @@ uses:
           application/json:
             example: !include examples/update-order-lines.raml
             properties:
-              orderLine: dataTypesLib.orderLine
-              customer: dataTypesLib.customer
+              order: dataTypesLib.order
+              orderLine: dataTypesLib.orderLine              
               licenseFactory: dataTypesLib.licenseFactory
         responses:
           200:
