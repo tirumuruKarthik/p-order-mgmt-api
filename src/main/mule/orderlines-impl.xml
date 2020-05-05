@@ -81,7 +81,7 @@ output application/json
 						<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
 output application/java
 ---
-404]]></ee:set-variable>
+200]]></ee:set-variable>
 					</ee:variables>
 				</ee:transform>
 				<flow-ref doc:name="Call to Logging Sub Flow" doc:id="9ff8d708-242b-4366-8be2-4592acd8c0d5" name="logging-sub-flow"/>
